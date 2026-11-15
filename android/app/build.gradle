@@ -1,0 +1,44 @@
+plugins {
+    id 'com.android.application'
+}
+
+def runNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
+
+android {
+    namespace 'com.nob.kagorama'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.nob.kagorama'
+        minSdk 24
+        targetSdk 34
+        versionCode runNumber
+        versionName "1.0.${runNumber}"
+    }
+
+    // Chave fixa: assim cada APK novo instala por cima do anterior sem perder o progresso.
+    signingConfigs {
+        release {
+            storeFile file('kagorama.jks')
+            storePassword 'kagorama-nob'
+            keyAlias 'kagorama'
+            keyPassword 'kagorama-nob'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.11.0'
+}
