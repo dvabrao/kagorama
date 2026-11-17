@@ -87,6 +87,22 @@ input.name:focus{border-color:var(--te)}
 .tile .cont{all:unset;cursor:pointer;text-align:center;background:var(--gr);color:#0e1a03;font-weight:700;font-size:12px;padding:8px 4px}
 #stage.tab .tile .cont{font-size:14px;padding:10px}
 .foot{text-align:center}
+/* menu cabe numa tela só: a grade ocupa o espaço que sobra e os ícones se ajustam */
+#ovMenu{padding:8px 10px 6px}
+#ovMenu .wrap{height:100%;display:flex;flex-direction:column}
+#ovMenu .top h1{font-size:18px;margin:2px 0}
+#ovMenu .ib{width:38px;height:36px;font-size:16px}
+#ovMenu .tiles{flex:1;min-height:0;grid-auto-rows:minmax(0,1fr);margin-top:8px;gap:8px}
+#ovMenu .tile .tap{padding:4px 4px 3px;gap:2px;justify-content:center;min-height:0}
+#ovMenu .tile svg{width:var(--ic,64px);height:var(--ic,64px);flex:none;border-radius:12px;padding:4px}
+#ovMenu .tile .tn{font-size:9px;line-height:1.4}
+#ovMenu .tile .tr{font-size:10px}
+#ovMenu .tile .q{width:24px;height:24px;font-size:12px;top:4px;right:4px}
+#ovMenu .tile .cont{font-size:11px;padding:5px 4px}
+#ovMenu .foot{margin-top:5px;font-size:10px;line-height:1.3}
+#ovMenu .credit{margin-top:2px;font-size:9px}
+#stage.tab #ovMenu .tile .tn{font-size:11px}
+#stage.tab #ovMenu .tile .cont{font-size:13px;padding:7px}
 #pad{position:absolute;left:0;right:0;bottom:0;height:0;z-index:4;pointer-events:none}
 #pad button{pointer-events:auto;position:absolute;background:rgba(236,232,214,.13);border:2px solid rgba(236,232,214,.35);color:rgba(236,232,214,.85);border-radius:14px;font-size:20px;touch-action:none;-webkit-user-select:none;user-select:none}
 #pad button.on{background:rgba(59,209,199,.4)}
@@ -250,6 +266,7 @@ function layout(){
   cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
   ctx.setTransform(dpr/K,0,0,dpr/K,0,0);
   if(cur&&(Math.abs(oW-W)>.5||Math.abs(oH-H)>.5)) cur.resize(oW,oH);
+  setTimeout(()=>{try{fitMenu();}catch(e){}},30);
 }
 window.addEventListener('resize',layout);
 window.addEventListener('orientationchange',()=>setTimeout(layout,200));
@@ -1431,11 +1448,20 @@ function renderMenu(){
       ${sv?`<button class="cont" data-g="${g.id}" data-a="cont">⟳ Continuar · nv ${sv.level}</button>`:''}
     </div>`;}).join('');
   renderFoot();
+  requestAnimationFrame(fitMenu);
 }
 $('#cards').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const id=b.dataset.g,a=b.dataset.a;
   sfx('click');
   if(a==='new')startGame(id,false);else if(a==='cont')startGame(id,true);else if(a==='help')showHelp(id,'menu');});
-$('#cfgBtn').addEventListener('click',()=>{const c=$('#cfg');c.hidden=!c.hidden;sfx('click');});
+$('#cfgBtn').addEventListener('click',()=>{const c=$('#cfg');c.hidden=!c.hidden;sfx('click');fitMenu();});
+function fitMenu(){
+  const t=$('#cards');if(!t||!$('#ovMenu').classList.contains('on'))return;
+  const cols=getComputedStyle(t).gridTemplateColumns.split(' ').length||2,rows=Math.ceil(t.children.length/cols);
+  const gap=8,tileH=(t.clientHeight-(rows-1)*gap)/rows,tab=stage.classList.contains('tab');
+  const ic=clamp(Math.floor(tileH-(tab?84:72)),24,tab?110:80);
+  t.style.setProperty('--ic',ic+'px');
+}
+window.addEventListener('resize',()=>setTimeout(fitMenu,60));
 $('#pname').addEventListener('change',e=>{S.name=e.target.value.trim().slice(0,16)||'Jogador';persist();});
 $('#pname').addEventListener('keydown',e=>{if(e.key==='Enter')e.target.blur();});
 $('#sndBtn').addEventListener('click',()=>{S.vol=((S.vol??3)+3)%4;setVol();unlockAudio();persist();$('#sndBtn').textContent=['🔇','🔈','🔉','🔊'][S.vol];setTimeout(()=>sfx('click'),30);});
